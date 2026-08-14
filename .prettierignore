@@ -1,0 +1,8 @@
+.next/
+node_modules/
+pnpm-lock.yaml
+playwright-report/
+test-results/
+rules/
+# rules/CLAUDE.md のコピー。整形すると原本と差分が出て混乱するため対象外にする
+CLAUDE.md

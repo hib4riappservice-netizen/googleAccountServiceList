@@ -1,0 +1,30 @@
+#!/bin/sh
+# DEV-01 (MUST): main に直接コミットしない。作業ブランチを切る。
+#
+# GitHub のブランチ保護は非公開リポジトリでは Pro 以上が必要なため、
+# サーバー側で強制できない。00-principles.md P6（人の注意力に依存しない）に従い、
+# ローカルの機械ゲートに変換したもの。
+#
+# 有効化: git config core.hooksPath .githooks
+# 例外を通す場合: ALLOW_COMMIT_ON_MAIN=1 git commit ...
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+if [ "$branch" = "main" ] && [ "${ALLOW_COMMIT_ON_MAIN:-0}" != "1" ]; then
+	cat >&2 <<'MSG'
+
+  main への直接コミットは DEV-01 (MUST) で禁止されています。
+
+  作業ブランチを切ってください:
+      git checkout -b feat/<何を作るか>
+
+  すでに変更をステージ済みなら、そのままブランチを切れば持ち越せます。
+
+  リポジトリ初期化やマージなど、やむを得ない場合のみ:
+      ALLOW_COMMIT_ON_MAIN=1 git commit ...
+
+MSG
+	exit 1
+fi
+
+exit 0

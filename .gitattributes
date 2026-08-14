@@ -1,0 +1,16 @@
+# 改行コードをリポジトリ内では LF に統一する。
+# Windows のローカルと Linux の CI で `pnpm format:check` の結果がずれるのを防ぐ
+# （DEV-02 の CI と G1 の format:check が同じ判定を返すことが前提のため）。
+* text=auto eol=lf
+
+# バイナリは変換しない
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary

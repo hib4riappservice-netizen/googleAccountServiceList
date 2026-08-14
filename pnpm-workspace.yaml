@@ -1,0 +1,6 @@
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+
+# SEC-11 (MUST): リリース遅延3日以上。単位は分。pnpm 11の既定(1440=1日)を明示的に上書きする。
+minimumReleaseAge: 4320
