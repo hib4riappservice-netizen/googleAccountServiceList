@@ -1,13 +1,15 @@
-# 01_xxx — Webサービス開発のテンプレート
+# googleAccountServiceList
 
-**このリポジトリは「雛形」です。** 実際のサービスは、ここから複製して作ります。
+Googleアカウントに紐づくサービスの一覧を管理するWebサービス。
 
-Next.js（Webアプリを作る道具）でサービスを作るときに、
-**品質基準と、それを自動で守る仕組みが最初から入った状態**で始められるようにしてあります。
+**現在準備中です。** 最初の機能はまだ実装されていません。
+
+このリポジトリは [`01_xxx`](https://github.com/hib4riappservice-netizen/01_xxx) テンプレートから作成されました。
+品質基準（ゲート・チェックリスト）とそれを自動で守る仕組みは、テンプレートからそのまま引き継いでいます。
 
 ---
 
-## 最初に読むもの
+## 開発の進め方を知る
 
 | 読む順 | ファイル                                 | 内容                                                                     |
 | ------ | ---------------------------------------- | ------------------------------------------------------------------------ |
@@ -15,6 +17,7 @@ Next.js（Webアプリを作る道具）でサービスを作るときに、
 | 2      | [docs/PLAYBOOK.md](docs/PLAYBOOK.md)     | 運用手順書。何をどの順番でやるか                                         |
 | 3      | [docs/AGENTS.md](docs/AGENTS.md)         | AIエージェント5体の分担                                                  |
 | 4      | [rules/README.md](rules/README.md)       | 品質基準の本体（詳しく知りたいとき）                                     |
+| 5      | [docs/decisions.md](docs/decisions.md)   | このサービス固有の技術的決定の記録                                       |
 
 ---
 
@@ -26,23 +29,19 @@ rules/          品質基準（合格ラインの定義）。11ファイル
 scripts/        自動チェックのスクリプト
 .github/        GitHub上で自動実行される検査
 docs/           このリポジトリの説明書と、決定の記録
-app/ lib/ tests/  アプリ本体（雛形の状態）
+app/ lib/ tests/  アプリ本体
 ```
 
 ---
 
-## このテンプレートから新しいサービスを作る
+## セットアップ
 
 ```bash
-gh repo create <新しいサービス名> --template hib4riappservice-netizen/01_xxx --private --clone
-cd <新しいサービス名>
+git clone https://github.com/hib4riappservice-netizen/googleAccountServiceList.git
+cd googleAccountServiceList
 pnpm install
 git config core.hooksPath .githooks
 ```
-
-詳しい手順とその後の進め方は [docs/PLAYBOOK.md](docs/PLAYBOOK.md) にあります。
-
----
 
 ## 開発中に使うコマンド
 
