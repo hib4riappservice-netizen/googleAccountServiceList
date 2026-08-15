@@ -19,10 +19,16 @@ describe('detectRegisteredServices', () => {
       {
         name: 'Example Service',
         senderDomain: 'example.com',
+        accessUrl: 'https://example.com',
         subject: 'ようこそ',
         receivedAt: 'd1',
       },
     ])
+  })
+
+  it('送信元ドメインからアクセスURLを組み立てる', () => {
+    const result = detectRegisteredServices([header('a@sub.example.com')])
+    expect(result[0]?.accessUrl).toBe('https://sub.example.com')
   })
 
   it('ダブルクォート付きの表示名からクォートを除去する', () => {

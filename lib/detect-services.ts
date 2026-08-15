@@ -11,6 +11,7 @@ export type GmailMessageHeader = {
 export type DetectedService = {
   name: string
   senderDomain: string
+  accessUrl: string
   subject: string
   receivedAt: string
 }
@@ -26,6 +27,8 @@ export function detectRegisteredServices(messages: GmailMessageHeader[]): Detect
     byDomain.set(parsed.domain, {
       name: parsed.name ?? parsed.domain,
       senderDomain: parsed.domain,
+      // ドメインから推測した参考リンク。実際のログインURLとは限らない（トップページへの誘導）
+      accessUrl: `https://${parsed.domain}`,
       subject: message.subject,
       receivedAt: message.receivedAt,
     })

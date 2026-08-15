@@ -3,10 +3,31 @@
 import { useActionState } from 'react'
 import { scanServicesAction } from '@/app/actions/gmail'
 import type { ScanResult } from '@/data/gmail'
+import { toCsv, toMarkdown } from '@/lib/export-services'
+import type { DetectedService } from '@/lib/detect-services'
 
 type State = ScanResult | { status: 'idle' }
 
 const initialState: State = { status: 'idle' }
+
+function downloadFile(filename: string, content: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
+function downloadCsv(services: DetectedService[]) {
+  // ExcelでBOM無しCSVを開くと日本語が文字化けするため付与する
+  downloadFile('registered-services.csv', '﻿' + toCsv(services), 'text/csv;charset=utf-8')
+}
+
+function downloadMarkdown(services: DetectedService[]) {
+  downloadFile('registered-services.md', toMarkdown(services), 'text/markdown;charset=utf-8')
+}
 
 export function ScanServicesPanel() {
   const [state, formAction, isPending] = useActionState<State, FormData>(
@@ -33,13 +54,26 @@ export function ScanServicesPanel() {
         <p>登録済みサービスは見つかりませんでした。</p>
       )}
       {state.status === 'success' && state.services.length > 0 && (
-        <ul>
-          {state.services.map((service) => (
-            <li key={service.senderDomain}>
-              {service.name}（{service.senderDomain}）
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul>
+            {state.services.map((service) => (
+              <li key={service.senderDomain}>
+                {service.name}（{service.senderDomain}） —{' '}
+                <a href={service.accessUrl} target="_blank" rel="noopener noreferrer">
+                  サイトを開く
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div>
+            <button type="button" onClick={() => downloadCsv(state.services)}>
+              CSVでダウンロード
+            </button>
+            <button type="button" onClick={() => downloadMarkdown(state.services)}>
+              Markdownでダウンロード
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
