@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'googleAccountServiceList',
-  description: '準備中',
+  description: 'Googleアカウントに紐づくサービスの一覧を確認できます。',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
