@@ -30,6 +30,11 @@ describe('detectRegisteredServices', () => {
     expect(result[0]?.name).toBe('Example Service')
   })
 
+  it('表示名内のエスケープされた引用符を実際の"に戻す（実測: お名前.comの実際のFromヘッダー）', () => {
+    const result = detectRegisteredServices([header('"\\"お名前.com\\"" <info@onamae.com>')])
+    expect(result[0]?.name).toBe('"お名前.com"')
+  })
+
   it('表示名が無い場合、ドメインを名前として使う', () => {
     const result = detectRegisteredServices([header('noreply@example.com')])
     expect(result[0]).toMatchObject({ name: 'example.com', senderDomain: 'example.com' })

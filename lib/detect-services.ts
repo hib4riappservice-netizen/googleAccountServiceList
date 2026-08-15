@@ -38,7 +38,9 @@ function parseFromHeader(from: string): { name: string | null; domain: string } 
   // "表示名 <email@domain>" 形式と、素の "email@domain" 形式の両方に対応する
   const bracketMatch = from.match(/^(.*)<([^<>\s]+)>\s*$/)
   const email = (bracketMatch?.[2] ?? from).trim()
-  const rawName = (bracketMatch?.[1] ?? '').trim().replace(/^"|"$/g, '')
+  // RFC 5322のquoted-string: 前後の"を外し、\"のようなバックスラッシュエスケープを解く
+  // （実例: `"\"お名前.com\""` は表示名に " を含めたいサービスからの実際のFromヘッダー）
+  const rawName = (bracketMatch?.[1] ?? '').trim().replace(/^"|"$/g, '').replace(/\\(.)/g, '$1')
 
   const at = email.lastIndexOf('@')
   if (at <= 0 || at === email.length - 1) return null
