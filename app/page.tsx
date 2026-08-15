@@ -1,6 +1,7 @@
 import { getCurrentUser } from '@/data/auth'
 import { SignInButton } from '@/components/auth/SignInButton'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { ScanServicesPanel } from '@/components/gmail/ScanServicesPanel'
 
 export default async function Home() {
   const user = await getCurrentUser()
@@ -20,6 +21,7 @@ export default async function Home() {
       <h1>googleAccountServiceList</h1>
       <p>{user.name ?? user.email} としてサインイン中です。</p>
       <SignOutButton />
+      <ScanServicesPanel />
     </main>
   )
 }
