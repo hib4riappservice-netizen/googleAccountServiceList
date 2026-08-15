@@ -12,6 +12,13 @@ on:
 permissions:
   contents: read
 
+# ビルド・起動時にAuth.jsが要求する値。実際のGoogle認証情報ではなく、
+# build/startがエラーにならないためだけのダミー値（SEC-99対象外）。
+env:
+  AUTH_SECRET: ci-dummy-secret-not-used-for-real-auth
+  AUTH_GOOGLE_ID: ci-dummy-client-id.apps.googleusercontent.com
+  AUTH_GOOGLE_SECRET: ci-dummy-client-secret
+
 jobs:
   verify:
     runs-on: ubuntu-latest
