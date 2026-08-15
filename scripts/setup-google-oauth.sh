@@ -184,7 +184,7 @@ finish() {
 # ──────────────────────────────────────────────────────────────────────────
 
 ENV_FILE=".env.local"
-TOTAL_STAGES=6
+TOTAL_STAGES=7
 
 banner "googleAccountServiceList — Google OAuth セットアップ"
 
@@ -224,7 +224,16 @@ warn "「利用者自身のGoogleアカウントに紐づく登録済みサー�
 step "スコープを保存して先に進む"
 pause "スコープを追加できたら Enter"
 
-# ── Stage 4: テストユーザー登録 ────────────────────────────────────────────
+# ── Stage 4: Gmail APIを有効にする ─────────────────────────────────────────
+stage "Gmail APIを有効にする"
+say "同意画面でgmail.readonlyを許可しても、Gmail API自体がこのプロジェクトで無効のままだと"
+say "呼び出しが403で失敗します（実測で発見。同意画面の設定とは別の手順です）。"
+open_url "https://console.cloud.google.com/apis/library/gmail.googleapis.com"
+step "プロジェクトが正しく選択されていることを確認する"
+step "「有効にする」ボタンを押す"
+pause "有効化できたら（数十秒待ってから）Enter"
+
+# ── Stage 5: テストユーザー登録 ────────────────────────────────────────────
 stage "テストユーザーを登録する"
 say "審査完了前は、ここに登録したGoogleアカウントしかサインインできません（最大100人）。"
 step "「テストユーザーを追加」から、実際に使わせたい人のGoogleメールアドレスを追加する"
@@ -232,7 +241,7 @@ step "自分自身のメールアドレスも忘れずに追加する"
 step "保存する"
 pause "テストユーザーを登録できたら Enter"
 
-# ── Stage 5: OAuthクライアントID作成 ───────────────────────────────────────
+# ── Stage 6: OAuthクライアントID作成 ───────────────────────────────────────
 stage "OAuthクライアントIDを作成する"
 say "アプリがGoogleと通信するための「鍵」を発行します。"
 open_url "https://console.cloud.google.com/apis/credentials"
@@ -248,7 +257,7 @@ ask_secret AUTH_GOOGLE_SECRET "クライアントシークレットを貼り付�
 write_env AUTH_GOOGLE_ID "$AUTH_GOOGLE_ID"
 write_env AUTH_GOOGLE_SECRET "$AUTH_GOOGLE_SECRET"
 
-# ── Stage 6: AUTH_SECRET生成 ───────────────────────────────────────────────
+# ── Stage 7: AUTH_SECRET生成 ───────────────────────────────────────────────
 stage "アプリ自身のセッション暗号化キーを作る"
 say "こちらはGoogleではなく、このアプリ自身がセッションを暗号化するための鍵です。"
 say "自動生成できます。以下のコマンドをこのターミナルとは別の場所（プロジェクトフォルダ）で"
