@@ -9,7 +9,7 @@ export default async function Home() {
   if (!user) {
     return (
       <main>
-        <h1>googleAccountServiceList</h1>
+        <h1>アカウントレーダー</h1>
         <p>Googleアカウントに紐づくサービスの一覧を確認できます。</p>
         <SignInButton />
       </main>
@@ -18,8 +18,8 @@ export default async function Home() {
 
   return (
     <main>
-      <h1>googleAccountServiceList</h1>
-      <p>{user.name ?? user.email} としてサインイン中です。</p>
+      <h1>アカウントレーダー</h1>
+      <p>{user.email} としてサインイン中です。</p>
       <SignOutButton />
       <ScanServicesPanel />
     </main>
