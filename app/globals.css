@@ -42,6 +42,19 @@ a {
   text-decoration: none;
 }
 
+/* A11Y-01 (MUST): タップ対象24x24px以上・隣接要素との間隔確保 (WCAG 2.2 target-size/target-offset) */
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 16px;
+}
+
+footer a {
+  display: inline-block;
+  padding: 8px 4px;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
