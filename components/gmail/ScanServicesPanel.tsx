@@ -24,7 +24,10 @@ export function ScanServicesPanel() {
 
       {state.status === 'unauthorized' && <p role="alert">サインインし直してください。</p>}
       {state.status === 'error' && (
-        <p role="alert">時間をおいて再試行してください。解決しない場合はお問い合わせください。</p>
+        <p role="alert">
+          Gmailの読み込みに失敗しました。時間をおいて再試行してください。解決しない場合はエラーID
+          <code>{state.errorId}</code>とともにお問い合わせください。
+        </p>
       )}
       {state.status === 'success' && state.services.length === 0 && (
         <p>登録済みサービスは見つかりませんでした。</p>

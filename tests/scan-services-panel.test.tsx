@@ -40,13 +40,16 @@ describe('ScanServicesPanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('サインインし直してください。')
   })
 
-  it('errorの場合、内部情報を含まない一般的なメッセージを表示する', async () => {
-    scanServicesActionMock.mockResolvedValueOnce({ status: 'error' })
+  it('errorの場合、何が起きたか・次の行動・エラーIDを表示し、内部情報は出さない', async () => {
+    scanServicesActionMock.mockResolvedValueOnce({ status: 'error', errorId: 'test-error-id' })
     const user = userEvent.setup()
     render(<ScanServicesPanel />)
 
     await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('時間をおいて再試行してください。')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Gmailの読み込みに失敗しました')
+    expect(alert).toHaveTextContent('時間をおいて再試行してください')
+    expect(alert).toHaveTextContent('test-error-id')
   })
 })

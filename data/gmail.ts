@@ -17,7 +17,7 @@ const SEARCH_QUERY =
 
 export type ScanResult =
   | { status: 'unauthorized' }
-  | { status: 'error' }
+  | { status: 'error'; errorId: string }
   | { status: 'success'; services: DetectedService[] }
 
 // SEC-05は該当なし: /users/me/ のみを呼び、呼び出し元以外のIDを一切受け取らないため
@@ -42,9 +42,11 @@ export async function scanRegisteredServices(): Promise<ScanResult> {
     const found = messageHeaders.filter((m): m is GmailMessageHeader => m !== null)
     return { status: 'success', services: detectRegisteredServices(found) }
   } catch (error) {
-    // SEC-81: 握りつぶさずログに残す（トークン等の秘密は含まれない想定のerrorのみ）
-    console.error('[data/gmail] scanRegisteredServices failed', error)
-    return { status: 'error' }
+    // SEC-81: 握りつぶさずログに残す（トークン等の秘密は含まれない想定のerrorのみ）。
+    // ERR-01: 想定外エラーは内部情報を出さず、ログと突き合わせられるIDだけを画面に返す。
+    const errorId = crypto.randomUUID()
+    console.error('[data/gmail] scanRegisteredServices failed', { errorId, error })
+    return { status: 'error', errorId }
   }
 }
 
