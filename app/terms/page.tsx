@@ -4,7 +4,7 @@ export default function TermsPage() {
       <h1>利用規約</h1>
 
       <h2>第1条（本規約について）</h2>
-      <p>本規約は、googleAccountServiceList（以下「本サービス」）の利用条件を定めるものです。</p>
+      <p>本規約は、アカウントレーダー（以下「本サービス」）の利用条件を定めるものです。</p>
 
       <h2>第2条（サービス内容）</h2>
       <p>

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'googleAccountServiceList',
+  title: 'アカウントレーダー',
   description: 'Googleアカウントに紐づくサービスの一覧を確認できます。',
 }
 
