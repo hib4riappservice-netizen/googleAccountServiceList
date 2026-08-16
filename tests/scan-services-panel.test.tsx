@@ -73,6 +73,16 @@ describe('ScanServicesPanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('サインインし直してください。')
   })
 
+  it('rate_limitedの場合、連打を示すメッセージを表示する', async () => {
+    scanServicesActionMock.mockResolvedValueOnce({ status: 'rate_limited' })
+    const user = userEvent.setup()
+    render(<ScanServicesPanel />)
+
+    await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('少し時間をおいてから再試行')
+  })
+
   it('errorの場合、何が起きたか・次の行動・エラーIDを表示し、内部情報は出さない', async () => {
     scanServicesActionMock.mockResolvedValueOnce({ status: 'error', errorId: 'test-error-id' })
     const user = userEvent.setup()

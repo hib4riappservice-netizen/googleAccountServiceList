@@ -44,6 +44,11 @@ export function ScanServicesPanel() {
       </form>
 
       {state.status === 'unauthorized' && <p role="alert">サインインし直してください。</p>}
+      {state.status === 'rate_limited' && (
+        <p role="alert">
+          短時間に何度もスキャンされたため、少し時間をおいてから再試行してください。
+        </p>
+      )}
       {state.status === 'error' && (
         <p role="alert">
           Gmailの読み込みに失敗しました。時間をおいて再試行してください。解決しない場合はエラーID

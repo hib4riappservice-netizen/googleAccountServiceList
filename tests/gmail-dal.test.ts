@@ -37,6 +37,12 @@ describe('scanRegisteredServices', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it('subが無ければunauthorizedを返す（レート制限のキーにできないため）', async () => {
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    const scan = await loadScan()
+    expect(await scan()).toEqual({ status: 'unauthorized' })
+  })
+
   it('getToken()にsecretを明示的に渡す（省略すると実行時に例外になるため回帰防止）', async () => {
     getTokenMock.mockResolvedValueOnce(null)
     const scan = await loadScan()
@@ -48,7 +54,7 @@ describe('scanRegisteredServices', () => {
 
   it('Gmail一覧APIが失敗したらerrorを返し、ログに残す', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 401 }))
     const scan = await loadScan()
     expect(await scan()).toEqual({ status: 'error', errorId: expect.any(String) })
@@ -58,7 +64,7 @@ describe('scanRegisteredServices', () => {
 
   it('fetchが例外を投げたらerrorを返す（安全側）', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockRejectedValueOnce(new Error('network down'))
     const scan = await loadScan()
     expect(await scan()).toEqual({ status: 'error', errorId: expect.any(String) })
@@ -67,7 +73,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('該当メールが無い場合、エラーではなく空のsuccessを返す', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ messages: [] }), { status: 200 }),
     )
@@ -76,14 +82,14 @@ describe('scanRegisteredServices', () => {
   })
 
   it('messagesフィールドが無い一覧レスポンスも空のsuccessとして扱う', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({}), { status: 200 }))
     const scan = await loadScan()
     expect(await scan()).toEqual({ status: 'success', services: [] })
   })
 
   it('個別メッセージの取得が一部失敗しても、残りだけでsuccessを返す', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ messages: [{ id: 'm1' }, { id: 'm2' }] }), { status: 200 }),
@@ -106,7 +112,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('複数件のメッセージから複数ドメインを検出する', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ messages: [{ id: 'm1' }, { id: 'm2' }] }), { status: 200 }),
@@ -120,7 +126,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('一覧APIのmessages要素にidが無い/文字列でない場合は無視する', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ messages: [{}, { id: 42 }, 'not-an-object'] }), {
         status: 200,
@@ -132,7 +138,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('個別メッセージにpayload/headersが無い場合は除外する', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ messages: [{ id: 'm1' }] }), { status: 200 }),
@@ -143,7 +149,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('Fromヘッダーが無いメッセージは除外する', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ messages: [{ id: 'm1' }] }), { status: 200 }),
@@ -158,7 +164,7 @@ describe('scanRegisteredServices', () => {
   })
 
   it('一覧取得→ヘッダー取得→検出結果DTOを返す', async () => {
-    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1' })
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch)
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ messages: [{ id: 'm1' }] }), { status: 200 }),
@@ -179,5 +185,32 @@ describe('scanRegisteredServices', () => {
         },
       ],
     })
+  })
+
+  it('同一ユーザーが上限回数を超えてスキャンするとrate_limitedを返す', async () => {
+    getTokenMock.mockResolvedValue({ accessToken: 'token-1', sub: 'user-rate-test' })
+    vi.mocked(fetch).mockImplementation(
+      async () => new Response(JSON.stringify({ messages: [] }), { status: 200 }),
+    )
+    const scan = await loadScan()
+
+    for (let i = 0; i < 5; i++) {
+      expect(await scan()).toEqual({ status: 'success', services: [] })
+    }
+    expect(await scan()).toEqual({ status: 'rate_limited' })
+  })
+
+  it('別のユーザーは互いのレート制限に影響しない', async () => {
+    vi.mocked(fetch).mockImplementation(
+      async () => new Response(JSON.stringify({ messages: [] }), { status: 200 }),
+    )
+    const scan = await loadScan()
+
+    getTokenMock.mockResolvedValue({ accessToken: 'token-1', sub: 'user-a' })
+    for (let i = 0; i < 5; i++) await scan()
+    expect(await scan()).toEqual({ status: 'rate_limited' })
+
+    getTokenMock.mockResolvedValue({ accessToken: 'token-1', sub: 'user-b' })
+    expect(await scan()).toEqual({ status: 'success', services: [] })
   })
 })
