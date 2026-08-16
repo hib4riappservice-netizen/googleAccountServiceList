@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
+
 // ERR-02 (MUST): グローバルの global-error.tsx。
 // ルートレイアウト自体が落ちた場合の最終防衛線なので html/body から自前で描画する。
 export default function GlobalError({
@@ -9,6 +12,10 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    Sentry.captureException(error)
+  }, [error])
+
   return (
     <html lang="ja">
       <body>
