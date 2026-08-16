@@ -1,10 +1,14 @@
+import type { SheetData } from 'write-excel-file/browser'
 import type { DetectedService } from '@/lib/detect-services'
 
 const HEADERS = ['サービス名', '送信元ドメイン', 'アクセスURL', '件名', '受信日'] as const
 
 // CSVインジェクション対策（CWE-1236）: name/subjectはメール送信者が自由に設定できる値。
 // セルが =/+/-/@ で始まると表計算ソフトが数式として評価しうるため、先頭に ' を付けてテキスト強制する。
-function neutralizeFormula(value: string): string {
+// xlsxは各セルに明示的な型（type: String）を持たせるためCSVほどの実害は無いはずだが、
+// 「メール送信者が自由に書ける値をそのまま表計算ソフトに渡す」という構造は同じなので、
+// 多層防御として同じ処理をxlsx側にも適用する。
+export function neutralizeFormula(value: string): string {
   return /^[=+\-@]/.test(value) ? `'${value}` : value
 }
 
@@ -42,4 +46,15 @@ export function toMarkdown(services: DetectedService[]): string {
     return `| ${name} | ${senderDomain} | [${s.accessUrl}](${s.accessUrl}) | ${subject} | ${receivedAt} |`
   })
   return [header, divider, ...rows].join('\n')
+}
+
+export function toXlsxSheetData(services: DetectedService[]): SheetData {
+  const headerRow = HEADERS.map((value) => ({ value, type: String, fontWeight: 'bold' as const }))
+  const rows = services.map((s) =>
+    [s.name, s.senderDomain, s.accessUrl, s.subject, s.receivedAt].map((value) => ({
+      value: neutralizeFormula(value),
+      type: String,
+    })),
+  )
+  return [headerRow, ...rows]
 }

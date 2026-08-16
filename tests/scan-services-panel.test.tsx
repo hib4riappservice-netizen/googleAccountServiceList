@@ -3,8 +3,16 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScanServicesPanel } from '@/components/gmail/ScanServicesPanel'
 
-const { scanServicesActionMock } = vi.hoisted(() => ({ scanServicesActionMock: vi.fn() }))
+const { scanServicesActionMock, writeXlsxFileMock, toFileMock } = vi.hoisted(() => {
+  const toFileMock = vi.fn().mockResolvedValue(undefined)
+  return {
+    scanServicesActionMock: vi.fn(),
+    writeXlsxFileMock: vi.fn(() => ({ toFile: toFileMock })),
+    toFileMock,
+  }
+})
 vi.mock('@/app/actions/gmail', () => ({ scanServicesAction: scanServicesActionMock }))
+vi.mock('write-excel-file/browser', () => ({ default: writeXlsxFileMock }))
 
 const sampleService = {
   name: 'Example',
@@ -32,35 +40,48 @@ describe('ScanServicesPanel', () => {
 
     await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
 
-    expect(await screen.findByText('登録済みサービスは見つかりませんでした。')).toBeInTheDocument()
+    expect(await screen.findByText(/登録済みサービスは見つかりませんでした/)).toBeInTheDocument()
   })
 
-  it('検出結果がある場合、一覧とアクセスリンク・ダウンロードボタンを表示する', async () => {
+  it('検出結果がある場合、件数・一覧・アクセスリンク・ダウンロードボタンを表示する', async () => {
     scanServicesActionMock.mockResolvedValueOnce({ status: 'success', services: [sampleService] })
     const user = userEvent.setup()
     render(<ScanServicesPanel />)
 
     await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
 
+    expect(await screen.findByText('1件のサービスが見つかりました')).toBeInTheDocument()
     const listItem = await screen.findByRole('listitem')
     expect(listItem).toHaveTextContent('Example')
-    expect(listItem).toHaveTextContent('（example.com）')
+    expect(listItem).toHaveTextContent('example.com')
     const link = screen.getByRole('link', { name: 'サイトを開く' })
     expect(link).toHaveAttribute('href', 'https://example.com')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    expect(screen.getByRole('button', { name: 'CSVでダウンロード' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Markdownでダウンロード' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'CSV' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Markdown' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument()
   })
 
-  it('CSVでダウンロードを押すとファイル生成処理が呼ばれる', async () => {
+  it('CSVを押すとファイル生成処理が呼ばれる', async () => {
     scanServicesActionMock.mockResolvedValueOnce({ status: 'success', services: [sampleService] })
     const user = userEvent.setup()
     render(<ScanServicesPanel />)
     await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
-    await user.click(await screen.findByRole('button', { name: 'CSVでダウンロード' }))
+    await user.click(await screen.findByRole('button', { name: 'CSV' }))
 
     expect(URL.createObjectURL).toHaveBeenCalledOnce()
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledOnce()
+  })
+
+  it('Excelを押すとxlsx生成処理が呼ばれる', async () => {
+    scanServicesActionMock.mockResolvedValueOnce({ status: 'success', services: [sampleService] })
+    const user = userEvent.setup()
+    render(<ScanServicesPanel />)
+    await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
+    await user.click(await screen.findByRole('button', { name: 'Excel' }))
+
+    expect(writeXlsxFileMock).toHaveBeenCalledOnce()
+    expect(toFileMock).toHaveBeenCalledWith('registered-services.xlsx')
   })
 
   it('unauthorizedの場合、サインインを促すメッセージを表示する', async () => {

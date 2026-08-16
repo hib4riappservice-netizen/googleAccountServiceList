@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toCsv, toMarkdown } from '@/lib/export-services'
+import { toCsv, toMarkdown, toXlsxSheetData } from '@/lib/export-services'
 import type { DetectedService } from '@/lib/detect-services'
 
 const sample: DetectedService[] = [
@@ -71,4 +71,33 @@ describe('toMarkdown', () => {
     // セル内改行が実際の行分割を増やしていないことも確認する
     expect(md.split('\n')).toHaveLength(3)
   })
+})
+
+describe('toXlsxSheetData', () => {
+  it('ヘッダー行（太字）とデータ行を生成する', () => {
+    const sheet = toXlsxSheetData(sample)
+    expect(sheet).toHaveLength(2)
+    expect(sheet[0]).toEqual([
+      { value: 'サービス名', type: String, fontWeight: 'bold' },
+      { value: '送信元ドメイン', type: String, fontWeight: 'bold' },
+      { value: 'アクセスURL', type: String, fontWeight: 'bold' },
+      { value: '件名', type: String, fontWeight: 'bold' },
+      { value: '受信日', type: String, fontWeight: 'bold' },
+    ])
+    expect(sheet[1]).toEqual([
+      { value: 'Example', type: String },
+      { value: 'example.com', type: String },
+      { value: 'https://example.com', type: String },
+      { value: 'ようこそ', type: String },
+      { value: '2026-08-15', type: String },
+    ])
+  })
+
+  it.each(['=cmd', '+cmd', '-cmd', '@cmd'])(
+    "数式として解釈されうる値 %s の先頭に'を付けてテキスト強制する（多層防御）",
+    (dangerous) => {
+      const sheet = toXlsxSheetData([{ ...sample[0]!, subject: dangerous }])
+      expect(sheet[1]?.[3]).toEqual({ value: `'${dangerous}`, type: String })
+    },
+  )
 })
