@@ -1,16 +1,6 @@
 :root {
-  --background: #f6f7f9;
-  --surface: #ffffff;
-  --foreground: #1a1d23;
-  --muted: #4b5563;
-  --border: #e2e5ea;
-  --primary: #1d4ed8;
-  --primary-foreground: #ffffff;
-  --danger: #9c1c14;
-  --danger-bg: #fdecea;
-  --danger-border: #f3b9b3;
   --radius: 10px;
-  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -20,36 +10,60 @@
   --space-7: 48px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f1115;
-    --surface: #171a21;
-    --foreground: #eef0f3;
-    --muted: #a7afbd;
-    --border: #2a2f3a;
-    --primary: #5b8def;
-    --primary-foreground: #0f1115;
-    --danger: #ffb4ab;
-    --danger-bg: #3a1f1f;
-    --danger-border: #6b2f2a;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  }
+/* ブランドの基本トーンはネイビー×Irisのダークテーマ。システム設定に関わらずこちらを既定にする
+   （ユーザーからの明示的な要望）。ライトモードのOSでは@mediaで薄いトーンに切り替える。 */
+html {
+  color-scheme: dark;
 }
 
-html {
-  height: 100%;
+body {
+  --background: #0a0c16;
+  --surface: #12142a;
+  --foreground: #edeefc;
+  --muted: #9295b8;
+  --border: #23253f;
+  --primary: #7c7cf0;
+  --primary-foreground: #0a0c16;
+  --danger: #ff8a80;
+  --danger-bg: #2c1416;
+  --danger-border: #5c2a2a;
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    --background: #f4f5fb;
+    --surface: #ffffff;
+    --foreground: #171a2b;
+    --muted: #5b5f7a;
+    --border: #e1e3f0;
+    --primary: #5b5bd6;
+    --primary-foreground: #ffffff;
+    --danger: #b3261e;
+    --danger-bg: #fdecea;
+    --danger-border: #f3b9b3;
+    --shadow: 0 1px 3px rgba(23, 26, 43, 0.08);
+  }
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
   color: var(--foreground);
   background: var(--background);
   font-family:
@@ -60,10 +74,47 @@ body {
   line-height: 1.6;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* アプリシェル: header/footerは常に画面内に固定し、中身だけがスクロールする
+   （フッターが動的なコンテンツに押し出されて見えなくなる問題への対応）。 */
+.app-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--foreground);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.site-logo:hover {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.site-logo svg {
+  color: var(--primary);
+  width: 18px;
+  height: 18px;
+}
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
@@ -100,7 +151,6 @@ code {
 }
 
 main {
-  flex: 1;
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
@@ -299,22 +349,16 @@ button.button-primary {
 
 /* A11Y-01 (MUST): タップ対象24x24px以上・隣接要素との間隔確保 (WCAG 2.2 target-size/target-offset) */
 footer {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-  padding: 20px;
+  padding: 16px 20px;
   border-top: 1px solid var(--border);
-  margin-top: auto;
 }
 
 footer a {
   display: inline-block;
   padding: 8px 4px;
   color: var(--muted);
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }
