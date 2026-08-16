@@ -22,9 +22,9 @@ describe('Home', () => {
       email: 'taro@example.com',
       image: null,
     })
-    render(await Home())
+    const { container } = render(await Home())
 
-    expect(screen.getByText('taro@example.com としてサインイン中です。')).toBeInTheDocument()
+    expect(container).toHaveTextContent('taro@example.com としてサインイン中です。')
     expect(screen.queryByText(/山田太郎/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'サインアウト' })).toBeInTheDocument()
   })

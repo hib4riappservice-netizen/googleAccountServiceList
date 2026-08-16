@@ -29,7 +29,9 @@ const securityHeaders = [
       // （`next start` + Playwright で実測: React error #412、CSP違反2件）。
       // nonceベースのCSP（middleware.tsで生成）にすればより厳格化できるが、
       // 現時点ではペイロードに機微情報を含む機能が無いため、この妥協点を記録して採用する。
-      "script-src 'self' 'unsafe-inline'",
+      // devモードのみ'unsafe-eval'も許可する: Reactの開発時デバッグ機能（スタックトレース復元等）が
+      // eval()を使うため、無いとNext.js DevToolsに「1 Issue」が出る（本番ビルドはevalを使わない）。
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
@@ -51,6 +53,9 @@ if (process.env.NODE_ENV === 'production') {
 const nextConfig: NextConfig = {
   // SEC-90: レスポンスから詳細情報（フレームワーク名）を出さない
   poweredByHeader: false,
+  // 開発者向けの「N」バッジ（左下）を無効化する。コンパイル/実行時エラーの表示自体は
+  // 無効化されない（Next.js公式ドキュメントで明記）。footerのリンクと重なって見えたため。
+  devIndicators: false,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },
