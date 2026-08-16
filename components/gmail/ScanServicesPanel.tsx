@@ -2,6 +2,14 @@
 
 import { useActionState } from 'react'
 import writeXlsxFile from 'write-excel-file/browser'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faMagnifyingGlass,
+  faArrowUpRightFromSquare,
+  faFileCsv,
+  faFileLines,
+  faFileExcel,
+} from '@fortawesome/free-solid-svg-icons'
 import { scanServicesAction } from '@/app/actions/gmail'
 import type { ScanResult } from '@/data/gmail'
 import { toCsv, toMarkdown, toXlsxSheetData } from '@/lib/export-services'
@@ -44,6 +52,7 @@ export function ScanServicesPanel() {
     <div className="scan-panel">
       <form action={formAction}>
         <button type="submit" className="button-primary" disabled={isPending}>
+          <FontAwesomeIcon icon={faMagnifyingGlass} aria-hidden="true" />
           {isPending ? 'スキャン中…' : 'スキャン開始'}
         </button>
       </form>
@@ -72,15 +81,13 @@ export function ScanServicesPanel() {
           <ul className="service-list">
             {state.services.map((service) => (
               <li key={service.senderDomain}>
-                <span className="service-avatar" aria-hidden="true">
-                  {service.name.charAt(0).toUpperCase()}
-                </span>
                 <span className="service-info">
                   <span className="service-name">{service.name}</span>
                   <span className="service-domain">{service.senderDomain}</span>
                 </span>
                 <a href={service.accessUrl} target="_blank" rel="noopener noreferrer">
                   サイトを開く
+                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
                 </a>
               </li>
             ))}
@@ -91,12 +98,15 @@ export function ScanServicesPanel() {
             </p>
             <div className="button-row" role="group" aria-labelledby="download-group-label">
               <button type="button" onClick={() => downloadCsv(state.services)}>
+                <FontAwesomeIcon icon={faFileCsv} aria-hidden="true" />
                 CSV
               </button>
               <button type="button" onClick={() => downloadMarkdown(state.services)}>
+                <FontAwesomeIcon icon={faFileLines} aria-hidden="true" />
                 Markdown
               </button>
               <button type="button" onClick={() => downloadXlsx(state.services)}>
+                <FontAwesomeIcon icon={faFileExcel} aria-hidden="true" />
                 Excel
               </button>
             </div>

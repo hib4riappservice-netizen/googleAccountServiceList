@@ -1,3 +1,6 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import Link from 'next/link'
 import { getCurrentUser } from '@/data/auth'
 import { SignInButton } from '@/components/auth/SignInButton'
 import { SignOutButton } from '@/components/auth/SignOutButton'
@@ -8,20 +11,27 @@ export default async function Home() {
 
   return (
     <main>
-      <header className="app-header">
-        <h1>アカウントレーダー</h1>
-        <p className="tagline">
-          Gmailの受信トレイを検索し、これまで登録したオンラインサービスの一覧を作ります。
-        </p>
-      </header>
+      {/* サイト名は常時表示のヘッダー（app/layout.tsx）側にあるため、ここでは視覚的には
+          繰り返さず、ページの主題としてのh1だけをスクリーンリーダー向けに残す。 */}
+      <h1 className="sr-only">アカウントレーダー</h1>
 
-      <section className="intro" aria-label="このサービスについて">
-        <ul>
-          <li>「ようこそ」「ご登録」などの案内メールを自動で検索します</li>
-          <li>読み取るのは件名・送信元・受信日時のみで、本文は取得しません</li>
-          <li>結果はCSV・Markdown・Excelでダウンロードできます</li>
-        </ul>
-      </section>
+      <details className="help-disclosure">
+        <summary>
+          <FontAwesomeIcon icon={faCircleInfo} aria-hidden="true" />
+          使い方
+        </summary>
+        <div className="help-disclosure-body">
+          <ul>
+            <li>「ようこそ」「ご登録」などの案内メールをGmail内から自動で検索します</li>
+            <li>結果はCSV・Markdown・Excelでダウンロードできます</li>
+          </ul>
+          <p className="privacy-note">
+            メール本文は取得しません。詳しくは
+            <Link href="/privacy">プライバシーポリシー</Link>
+            をご覧ください。
+          </p>
+        </div>
+      </details>
 
       {!user && (
         <section className="section">
