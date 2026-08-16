@@ -48,14 +48,33 @@ export function ScanServicesPanel() {
     initialState,
   )
 
+  const services = state.status === 'success' ? state.services : []
+  const hasResults = services.length > 0
+
   return (
     <div className="scan-panel">
-      <form action={formAction}>
-        <button type="submit" className="button-primary" disabled={isPending}>
-          <FontAwesomeIcon icon={faMagnifyingGlass} aria-hidden="true" />
-          {isPending ? 'スキャン中…' : 'スキャン開始'}
-        </button>
-      </form>
+      <div className="action-row">
+        <form action={formAction}>
+          <button type="submit" className="button-primary" disabled={isPending}>
+            <FontAwesomeIcon icon={faMagnifyingGlass} aria-hidden="true" />
+            {isPending ? 'スキャン中…' : 'スキャン開始'}
+          </button>
+        </form>
+        <div className="button-row" role="group" aria-label="ダウンロード">
+          <button type="button" disabled={!hasResults} onClick={() => downloadCsv(services)}>
+            <FontAwesomeIcon icon={faFileCsv} aria-hidden="true" />
+            CSV
+          </button>
+          <button type="button" disabled={!hasResults} onClick={() => downloadMarkdown(services)}>
+            <FontAwesomeIcon icon={faFileLines} aria-hidden="true" />
+            Markdown
+          </button>
+          <button type="button" disabled={!hasResults} onClick={() => downloadXlsx(services)}>
+            <FontAwesomeIcon icon={faFileExcel} aria-hidden="true" />
+            Excel
+          </button>
+        </div>
+      </div>
 
       {state.status === 'unauthorized' && <p role="alert">サインインし直してください。</p>}
       {state.status === 'rate_limited' && (
@@ -75,11 +94,11 @@ export function ScanServicesPanel() {
           Gmail内に見当たらなかった可能性があります。
         </p>
       )}
-      {state.status === 'success' && state.services.length > 0 && (
+      {state.status === 'success' && hasResults && (
         <div className="results">
-          <p className="result-summary">{state.services.length}件のサービスが見つかりました</p>
+          <p className="result-summary">{services.length}件のサービスが見つかりました</p>
           <ul className="service-list">
-            {state.services.map((service) => (
+            {services.map((service) => (
               <li key={service.senderDomain}>
                 <span className="service-info">
                   <span className="service-name">{service.name}</span>
@@ -92,25 +111,6 @@ export function ScanServicesPanel() {
               </li>
             ))}
           </ul>
-          <div className="download-group">
-            <p className="download-label" id="download-group-label">
-              ダウンロード
-            </p>
-            <div className="button-row" role="group" aria-labelledby="download-group-label">
-              <button type="button" onClick={() => downloadCsv(state.services)}>
-                <FontAwesomeIcon icon={faFileCsv} aria-hidden="true" />
-                CSV
-              </button>
-              <button type="button" onClick={() => downloadMarkdown(state.services)}>
-                <FontAwesomeIcon icon={faFileLines} aria-hidden="true" />
-                Markdown
-              </button>
-              <button type="button" onClick={() => downloadXlsx(state.services)}>
-                <FontAwesomeIcon icon={faFileExcel} aria-hidden="true" />
-                Excel
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

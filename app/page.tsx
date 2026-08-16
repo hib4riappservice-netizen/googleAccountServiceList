@@ -49,8 +49,7 @@ export default async function Home() {
             <SignOutButton />
           </section>
 
-          <section className="section">
-            <h2>スキャン</h2>
+          <section className="section section-fill">
             <ScanServicesPanel />
           </section>
         </>

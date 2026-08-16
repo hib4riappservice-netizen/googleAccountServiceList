@@ -169,6 +169,11 @@ main {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  /* .section-fillが付いた子要素（検出結果一覧）だけを伸縮・スクロールさせるための連鎖。
+     min-height:0が無いとflexアイテムは中身の高さより縮まないため、一覧が画面外に
+     はみ出て外側(.scroll-area)が二重にスクロールしてしまう（実機で発見・修正）。 */
+  flex: 1;
+  min-height: 0;
 }
 
 /* 折りたたみ式の「使い方」。既定で閉じておき、常時は場所を取らない
@@ -266,10 +271,27 @@ main {
   gap: var(--space-4);
 }
 
+/* このセクション（スキャン結果）だけが余った縦スペースを吸収する。他のセクションは
+   自然な高さのまま。 */
+.section-fill {
+  flex: 1;
+  min-height: 0;
+}
+
 .scan-panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  flex: 1;
+  min-height: 0;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .empty-state {
@@ -279,26 +301,14 @@ main {
 .results {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  flex: 1;
+  min-height: 0;
 }
 
 .result-summary {
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.download-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.download-label {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* ボタン: 既定はアウトライン（セカンダリ）見た目。主要な操作にだけ .button-primary を付与する。
@@ -334,16 +344,31 @@ button svg {
   height: 14px;
 }
 
+/* 「ダサい」という指摘への対応: 平坦な単色塗りから、グラデーション+発光気味の影+
+   ホバー時の微妙な浮き上がりに変更し、主要操作らしい質感を出す。 */
 button.button-primary {
-  background: var(--primary);
-  border-color: var(--primary);
+  padding: 12px 24px;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 70%, #ffffff)
+  );
+  border-color: transparent;
   color: var(--primary-foreground);
-  box-shadow: var(--shadow);
+  font-weight: 700;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 45%, transparent);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 button.button-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 85%, black);
-  border-color: color-mix(in srgb, var(--primary) 85%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+button.button-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 /* Google公式のボタンガイドラインに寄せる: 白背景・薄いボーダー・多色ロゴ・グレー系の文字
@@ -373,11 +398,15 @@ button.button-google svg {
 /* 検出結果カード */
 /* 一覧だけを内側でスクロールさせ、ダウンロードボタンが件数に関わらず
    常にすぐ下（スクロール不要な位置）に来るようにする（指摘対応）。 */
+/* 一覧「だけ」を伸縮・スクロールさせる（固定のmax-heightだと、他の要素の合計が
+   ビューポートを超えた時に外側(.scroll-area)まで一緒にスクロールしてしまっていた。
+   flex:1 + min-height:0で「残りの高さぴったり」に伸縮させることで解消。指摘対応）。 */
 .service-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  max-height: min(45vh, 420px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: var(--space-1);
 }
