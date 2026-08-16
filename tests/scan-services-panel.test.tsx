@@ -33,6 +33,14 @@ describe('ScanServicesPanel', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
   })
 
+  it('スキャン前はダウンロードボタンが非活性', () => {
+    render(<ScanServicesPanel />)
+
+    expect(screen.getByRole('button', { name: 'CSV' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Markdown' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Excel' })).toBeDisabled()
+  })
+
   it('検出結果が0件の場合、空状態を表示する（エラー扱いにしない）', async () => {
     scanServicesActionMock.mockResolvedValueOnce({ status: 'success', services: [] })
     const user = userEvent.setup()
@@ -57,9 +65,9 @@ describe('ScanServicesPanel', () => {
     const link = screen.getByRole('link', { name: 'サイトを開く' })
     expect(link).toHaveAttribute('href', 'https://example.com')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    expect(screen.getByRole('button', { name: 'CSV' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Markdown' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'CSV' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Markdown' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Excel' })).toBeEnabled()
   })
 
   it('CSVを押すとファイル生成処理が呼ばれる', async () => {
