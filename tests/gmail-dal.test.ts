@@ -94,7 +94,13 @@ describe('scanRegisteredServices', () => {
     expect(await scan()).toEqual({
       status: 'success',
       services: [
-        { name: 'example.com', senderDomain: 'example.com', subject: 'ようこそ', receivedAt: 'd1' },
+        {
+          name: 'example.com',
+          senderDomain: 'example.com',
+          accessUrl: 'https://example.com',
+          subject: 'ようこそ',
+          receivedAt: 'd1',
+        },
       ],
     })
   })
@@ -167,6 +173,7 @@ describe('scanRegisteredServices', () => {
         {
           name: 'Example',
           senderDomain: 'example.com',
+          accessUrl: 'https://example.com',
           subject: 'ようこそ',
           receivedAt: '2026-08-15',
         },
