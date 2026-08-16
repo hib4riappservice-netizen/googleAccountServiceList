@@ -43,7 +43,8 @@ describe('ScanServicesPanel', () => {
     await user.click(screen.getByRole('button', { name: 'スキャン開始' }))
 
     const listItem = await screen.findByRole('listitem')
-    expect(listItem).toHaveTextContent('Example（example.com）')
+    expect(listItem).toHaveTextContent('Example')
+    expect(listItem).toHaveTextContent('（example.com）')
     const link = screen.getByRole('link', { name: 'サイトを開く' })
     expect(link).toHaveAttribute('href', 'https://example.com')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')

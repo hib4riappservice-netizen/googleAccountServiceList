@@ -38,7 +38,7 @@ export function ScanServicesPanel() {
   return (
     <div>
       <form action={formAction}>
-        <button type="submit" disabled={isPending}>
+        <button type="submit" className="button-primary" disabled={isPending}>
           {isPending ? 'スキャン中…' : 'スキャン開始'}
         </button>
       </form>
@@ -55,17 +55,18 @@ export function ScanServicesPanel() {
       )}
       {state.status === 'success' && state.services.length > 0 && (
         <>
-          <ul>
+          <ul className="service-list">
             {state.services.map((service) => (
               <li key={service.senderDomain}>
-                {service.name}（{service.senderDomain}） —{' '}
+                {service.name} <span className="service-domain">（{service.senderDomain}）</span>
+                {' — '}
                 <a href={service.accessUrl} target="_blank" rel="noopener noreferrer">
                   サイトを開く
                 </a>
               </li>
             ))}
           </ul>
-          <div>
+          <div className="button-row">
             <button type="button" onClick={() => downloadCsv(state.services)}>
               CSVでダウンロード
             </button>
