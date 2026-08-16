@@ -1,4 +1,18 @@
 import type { NextConfig } from 'next'
+import { withSentryConfig } from '@sentry/nextjs'
+
+// Sentryへのエラー送信はブラウザからの直接fetchのため、CSPのconnect-srcに
+// 明示的に許可しないとブロックされて何も送信されない（自己ホストのconnect-src 'self'とは別ホスト）。
+// 値が壊れている場合（コピペミス等）はビルドを落とさず、connect-srcを広げないほうに倒す。
+function getSentryIngestHost(): string | null {
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return null
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SENTRY_DSN).host
+  } catch {
+    return null
+  }
+}
+const sentryIngestHost = getSentryIngestHost()
 
 // checklists/release.md SEC-90〜92, 98 の実装。scripts/check-headers.mjs で機械検証する。
 const securityHeaders = [
@@ -19,7 +33,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",
       "font-src 'self'",
-      "connect-src 'self'",
+      `connect-src 'self'${sentryIngestHost ? ` https://${sentryIngestHost}` : ''}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -42,4 +56,10 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+// SENTRY_AUTH_TOKENは未設定（無料プランの範囲でソースマップアップロードは今回スコープ外、
+// docs/decisions.md参照）。無い場合はビルド自体は成功し、アップロードだけがスキップされる。
+export default withSentryConfig(nextConfig, {
+  org: 'hib4ri',
+  project: 'javascript-nextjs',
+  silent: !process.env.CI,
+})
