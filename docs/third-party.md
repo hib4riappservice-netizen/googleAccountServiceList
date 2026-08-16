@@ -10,4 +10,4 @@
 | 2026-08-16 | `@sentry/nextjs`                      | 約822万  | 2026-08時点で最新 | 14         | エラー監視（無料プラン）。詳細は `docs/decisions.md`・`docs/specs/error-monitoring.md` |
 | 2026-08-16 | Sentry（外部サービス、米国法人）      | -        | -                 | -          | エラー監視SaaS。無料プラン。個人情報は送信しない設計。詳細は `docs/privacy-ops.md`     |
 | 2026-08-16 | `write-excel-file`                    | 約56万   | 2026-06-08        | 1          | 検出結果のExcel(.xlsx)ダウンロード。ブラウザ専用・軽量。詳細は `docs/decisions.md`     |
-| 2026-08-17 | `@fortawesome/react-fontawesome`他2点 | 約193万  | 2026-07-20        | 0          | アイコン（fontawesome.com指定）。個別importでtree-shake。詳細は `docs/decisions.md`    |
+| 2026-08-17 | `@fortawesome/react-fontawesome`他2点 | 約193万  | 2026-07-20        | 2          | アイコン（fontawesome.com指定）。個別importでtree-shake。詳細は `docs/decisions.md`    |
