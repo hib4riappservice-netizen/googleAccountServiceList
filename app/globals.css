@@ -371,10 +371,15 @@ button.button-google svg {
 }
 
 /* 検出結果カード */
+/* 一覧だけを内側でスクロールさせ、ダウンロードボタンが件数に関わらず
+   常にすぐ下（スクロール不要な位置）に来るようにする（指摘対応）。 */
 .service-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  max-height: min(45vh, 420px);
+  overflow-y: auto;
+  padding-right: var(--space-1);
 }
 
 .service-list li {
