@@ -6,10 +6,14 @@ import {
   type DetectedService,
   type GmailMessageHeader,
 } from '@/lib/detect-services'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 // SEC-40/41: 高コストな外部API呼び出しの上限。DBが無くサーバー側の永続的なレート制限は
 // 持てないため、1回あたりの取得件数を絞ることで上限を設ける（Gmail API自体のクォータにも守られる）。
 const MAX_RESULTS = 50
+// 連打防止（SEC-40/41）。lib/rate-limit.tsの制約（インメモリ、再起動でリセット）は許容する。
+const SCAN_RATE_LIMIT = 5
+const SCAN_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000
 // 件名キーワードでの絞り込みはGmail検索側に任せる（本文は要求しない。取得後に捨てるのではなく
 // そもそも取得しない設計）
 const SEARCH_QUERY =
@@ -17,6 +21,7 @@ const SEARCH_QUERY =
 
 export type ScanResult =
   | { status: 'unauthorized' }
+  | { status: 'rate_limited' }
   | { status: 'error'; errorId: string }
   | { status: 'success'; services: DetectedService[] }
 
@@ -31,8 +36,11 @@ export async function scanRegisteredServices(): Promise<ScanResult> {
     const secret = process.env.AUTH_SECRET
     if (!secret) throw new Error('AUTH_SECRET is not set')
     const token = await getToken({ req: { headers: await nextHeaders() }, secret })
-    if (!token?.accessToken) {
+    if (!token?.accessToken || !token.sub) {
       return { status: 'unauthorized' }
+    }
+    if (!checkRateLimit(token.sub, SCAN_RATE_LIMIT, SCAN_RATE_LIMIT_WINDOW_MS)) {
+      return { status: 'rate_limited' }
     }
 
     const messageIds = await listMessageIds(token.accessToken)
