@@ -10,14 +10,21 @@ import { checkRateLimit } from '@/lib/rate-limit'
 
 // SEC-40/41: 高コストな外部API呼び出しの上限。DBが無くサーバー側の永続的なレート制限は
 // 持てないため、1回あたりの取得件数を絞ることで上限を設ける（Gmail API自体のクォータにも守られる）。
-const MAX_RESULTS = 50
+// 件名での事前絞り込みをやめた分（下記）、対象母数が広がったため件数も引き上げる。
+const MAX_RESULTS = 200
 // 連打防止（SEC-40/41）。lib/rate-limit.tsの制約（インメモリ、再起動でリセット）は許容する。
 const SCAN_RATE_LIMIT = 5
 const SCAN_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000
-// 件名キーワードでの絞り込みはGmail検索側に任せる（本文は要求しない。取得後に捨てるのではなく
-// そもそも取得しない設計）
-const SEARCH_QUERY =
-  '(subject:welcome OR subject:登録 OR subject:確認 OR subject:verify OR subject:confirm OR subject:ようこそ OR subject:registration OR subject:signup OR subject:認証)'
+// 件名キーワード（"welcome"等）での絞り込みは、実際の登録通知メールの件名パターンが
+// 多様すぎて取りこぼしが多いと判明したため廃止した（CEOからの指摘）。件名では絞らず、
+// 送受信・下書き・迷惑メールを含む全メール（ゴミ箱を除く）を対象にする。Gmail検索は
+// 既定でSpam/Trashを除外するため、in:anywhereで両方の除外を解除した上で-in:trashにより
+// ゴミ箱だけ除外し直す。ノイズ（個人からの連絡等）はlib/detect-services.tsのドメイン除外で抑える。
+const SEARCH_QUERY = 'in:anywhere -in:trash'
+// MAX_RESULTS引き上げに伴い、個別メッセージ取得を一括Promise.allで撃つとGmail APIの
+// per-user quota（約250 unit/秒、messages.getは5 unit）に対してバースト的になりうる
+// （レビューで指摘）。小さいバッチに分けて逐次実行することで平準化する。
+const FETCH_CONCURRENCY = 10
 
 export type ScanResult =
   | { status: 'unauthorized' }
@@ -44,10 +51,7 @@ export async function scanRegisteredServices(): Promise<ScanResult> {
     }
 
     const messageIds = await listMessageIds(token.accessToken)
-    const messageHeaders = await Promise.all(
-      messageIds.map((id) => fetchMessageHeader(id, token.accessToken as string)),
-    )
-    const found = messageHeaders.filter((m): m is GmailMessageHeader => m !== null)
+    const found = await fetchMessageHeadersInBatches(messageIds, token.accessToken)
     return { status: 'success', services: detectRegisteredServices(found) }
   } catch (error) {
     // SEC-81: 握りつぶさずログに残す（トークン等の秘密は含まれない想定のerrorのみ）。
@@ -79,6 +83,23 @@ async function listMessageIds(accessToken: string): Promise<string[]> {
       typeof m === 'object' && m !== null && 'id' in m ? (m as { id: unknown }).id : null,
     )
     .filter((id): id is string => typeof id === 'string')
+}
+
+// 一括Promise.allでの取得はGmail APIのper-userクォータに対してバースト的になりうるため、
+// FETCH_CONCURRENCY件ずつ順番に取得する（1バッチ内はPromise.allで並列化する）。
+async function fetchMessageHeadersInBatches(
+  ids: string[],
+  accessToken: string,
+): Promise<GmailMessageHeader[]> {
+  const found: GmailMessageHeader[] = []
+  for (let i = 0; i < ids.length; i += FETCH_CONCURRENCY) {
+    const batch = ids.slice(i, i + FETCH_CONCURRENCY)
+    const results = await Promise.all(batch.map((id) => fetchMessageHeader(id, accessToken)))
+    for (const result of results) {
+      if (result) found.push(result)
+    }
+  }
+  return found
 }
 
 async function fetchMessageHeader(
