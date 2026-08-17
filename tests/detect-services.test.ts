@@ -92,4 +92,20 @@ describe('detectRegisteredServices', () => {
   it('空配列に対しては空配列を返す', () => {
     expect(detectRegisteredServices([])).toEqual([])
   })
+
+  it.each(['gmail.com', 'Yahoo.co.jp', 'ICLOUD.com', 'outlook.com', 'docomo.ne.jp'])(
+    '個人向けフリーメールドメイン %s は登録済みサービスとして扱わない（件名フィルタ廃止に伴うノイズ対策）',
+    (domain) => {
+      expect(detectRegisteredServices([header(`friend@${domain}`)])).toEqual([])
+    },
+  )
+
+  it('フリーメールドメインと通常のサービスが混在する場合、フリーメールだけ除外する', () => {
+    const result = detectRegisteredServices([
+      header('friend@gmail.com'),
+      { id: '2', subject: 'ようこそ', from: 'noreply@example.com', receivedAt: 'd2' },
+    ])
+    expect(result).toHaveLength(1)
+    expect(result[0]?.senderDomain).toBe('example.com')
+  })
 })

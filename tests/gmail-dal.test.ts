@@ -72,6 +72,48 @@ describe('scanRegisteredServices', () => {
     consoleError.mockRestore()
   })
 
+  it('件名では絞り込まず、迷惑メールを含む全メール（ゴミ箱を除く）を検索対象にする', async () => {
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ messages: [] }), { status: 200 }),
+    )
+    const scan = await loadScan()
+    await scan()
+
+    const calledUrl = new URL(vi.mocked(fetch).mock.calls[0]?.[0] as string)
+    expect(calledUrl.searchParams.get('q')).toBe('in:anywhere -in:trash')
+  })
+
+  it('件名フィルタ廃止に伴い、一覧取得の上限を200件に引き上げている', async () => {
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ messages: [] }), { status: 200 }),
+    )
+    const scan = await loadScan()
+    await scan()
+
+    const calledUrl = new URL(vi.mocked(fetch).mock.calls[0]?.[0] as string)
+    expect(calledUrl.searchParams.get('maxResults')).toBe('200')
+  })
+
+  it('取得件数がバッチサイズ（10件）を超えても、全件を取りこぼさず処理する', async () => {
+    getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
+    const ids = Array.from({ length: 15 }, (_, i) => `m${i}`)
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ messages: ids.map((id) => ({ id })) }), { status: 200 }),
+    )
+    for (let i = 0; i < ids.length; i++) {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        messageResponse(`sender${i}@example${i}.com`, 'ようこそ', `d${i}`),
+      )
+    }
+    const scan = await loadScan()
+    const result = await scan()
+
+    expect(result.status).toBe('success')
+    expect(result.status === 'success' && result.services).toHaveLength(15)
+  })
+
   it('該当メールが無い場合、エラーではなく空のsuccessを返す', async () => {
     getTokenMock.mockResolvedValueOnce({ accessToken: 'token-1', sub: 'user-1' })
     vi.mocked(fetch).mockResolvedValueOnce(

@@ -1,5 +1,29 @@
-// Gmail検索クエリ側で件名キーワードによる絞り込み済みのメッセージヘッダーを受け取り、
-// 画面表示用のDTOに変換する純粋関数。本文は一切扱わない（ヘッダーのみ）。
+// Gmail側では件名で絞り込まず（実測で取りこぼしが多いと判明したため廃止）、
+// 迷惑メールを含む全メールを対象にする。そのため個人からの連絡がそのまま
+// 「登録済みサービス」として混入しないよう、ここでノイズを落とす。本文は一切扱わない（ヘッダーのみ）。
+
+// 個人向けフリーメールのドメイン。これらのドメインからの送信は個人からの連絡である
+// 可能性が高く、「登録したサービス」ではないため一覧から除外する
+// （件名キーワードでの事前絞り込みをやめたことに伴うノイズ対策。CEOからの指摘で追加）。
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yahoo.co.jp',
+  'yahoo.com',
+  'outlook.com',
+  'outlook.jp',
+  'hotmail.com',
+  'hotmail.co.jp',
+  'live.com',
+  'live.jp',
+  'icloud.com',
+  'me.com',
+  'docomo.ne.jp',
+  'ezweb.ne.jp',
+  'au.com',
+  'softbank.ne.jp',
+  'i.softbank.jp',
+])
 
 export type GmailMessageHeader = {
   id: string
@@ -22,6 +46,7 @@ export function detectRegisteredServices(messages: GmailMessageHeader[]): Detect
   for (const message of messages) {
     const parsed = parseFromHeader(message.from)
     if (!parsed) continue
+    if (PERSONAL_EMAIL_DOMAINS.has(parsed.domain)) continue
     if (byDomain.has(parsed.domain)) continue
 
     byDomain.set(parsed.domain, {
